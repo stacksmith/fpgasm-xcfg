@@ -1,0 +1,4 @@
+windres gdi01.rc resfile.o
+g++ -c main.cpp  stb_image.c cCanvas.cpp  cBitmap.cpp cControl.cpp cCheckBox.cpp cCtlMultistate.cpp cCellControls.cpp  -D_WIN32_WINNT=0x0501
+g++   -mconsole -mwindows -o xcfg.exe  main.o stb_image.c cCanvas.o cBitmap.o cControl.o cCheckBox.o cCtlMultistate.o cCellControls.o resfile.o 
+#REM -l user32 -lkernel32 -ladvapi32 -lshell32  -lgdi32 

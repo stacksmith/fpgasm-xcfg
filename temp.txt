@@ -1,0 +1,155 @@
+
+/*
+  // Calling BeginPaint clears the update region that was set by calls
+  // to InvalidateRect(). Once the update region is cleared no more
+  // WM_PAINT messages will be sent to the window until InvalidateRect
+  // is called again.
+  PAINTSTRUCT ps;
+  HDC hdc = BeginPaint(hwnd,&ps);
+  HDC hdcMem = CreateCompatibleDC(0); //compatible with screen
+ HBITMAP QQQ = cbm;
+ fprintf(stderr,"QQQ is %p\n",QQQ);
+  HBITMAP hbmT = SelectBitmap(hdcMem,cbm);
+  
+    // Now, the BitBlt function is used to transfer the contents of the 
+  // drawing surface from one DC to another. Before we can paint the
+  // bitmap however we need to know how big it is. We call the GDI
+  // function GetObject to get the relevent details.
+  BITMAP bm;
+  GetObject(cbm,sizeof(bm),&bm);
+  BitBlt(hdc,0,0,bm.bmWidth,bm.bmHeight,hdcMem,0,0,SRCCOPY);
+  cellcontrols->draw(hdc);
+  // Now, clean up. A memory DC always has a drawing
+  // surface in it. It is created with a 1X1 monochrome
+  // bitmap that we saved earlier, and need to put back
+  // before we destroy it.
+  SelectBitmap(hdcMem,hbmT);
+  DeleteDC(hdcMem);
+  
+  // EndPaint balances off the BeginPaint call.
+  EndPaint(hwnd,&ps);
+  */
+ 
+struct FRGB {
+  float blue;
+  float green;
+  float red;
+};
+
+void boxH(FRGB*out,FRGB*in,U32 w,U32 h){
+  U32 x,y;
+  for(y=0; y<h;y++){
+    out[y * w] = in[y * w];
+    for(x=1; x<w-1; x++){
+      out[y*w+x].red = (in[y*w+x-1].red + in[y*w+x].red +in[y*w+x+1].red)/3.0;
+      out[y*w+x].green = (in[y*w+x-1].green + in[y*w+x].green +in[y*w+x+1].green)/3.0;
+      out[y*w+x].blue = (in[y*w+x-1].blue + in[y*w+x].blue +in[y*w+x+1].blue)/3.0;
+    }
+    out[y*w+w-1] = in[y*w+w-1];
+  }
+}
+void boxH5(FRGB*out,FRGB*in,U32 w,U32 h){
+  U32 x,y;
+  for(y=0; y<h;y++){
+    for(x=2; x<w-2; x++){
+      out[y*w+x].red = (in[y*w+x-2].red+in[y*w+x-1].red + in[y*w+x].red +in[y*w+x+1].red+in[y*w+x+2].red)/5.0;
+      out[y*w+x].green = (in[y*w+x-2].green+in[y*w+x-1].green + in[y*w+x].green +in[y*w+x+1].green+in[y*w+x+2].green)/5.0;
+      out[y*w+x].blue = (in[y*w+x-2].blue+in[y*w+x-1].blue + in[y*w+x].blue +in[y*w+x+1].blue+in[y*w+x+2].blue)/5.0;
+    }
+  }
+}
+void boxV(FRGB*out,FRGB*in,U32 w,U32 h){
+  U32 x,y;
+  for(y=1; y<h-1;y++){
+    for(x=0; x<w; x++){
+      out[y*w+x].red =     (in[(y-1)*w+x].red +     in[y*w+x].red +     in[(y+1)*w+x].red)/3.0;
+      out[y*w+x].green = (in[(y-1)*w+x].green + in[y*w+x].green + in[(y+1)*w+x].green)/3.0;
+      out[y*w+x].blue =   (in[(y-1)*w+x].blue +    in[y*w+x].blue +   in[(y+1)*w+x].blue)/3.0;
+    }
+  }
+}
+void boxV5(FRGB*out,FRGB*in,U32 w,U32 h){
+  U32 x,y;
+  for(y=2; y<h-2;y++){
+    for(x=0; x<w; x++){
+      out[y*w+x].red =     (in[(y-2)*w+x].red + in[(y-1)*w+x].red +     in[y*w+x].red +     in[(y+1)*w+x].red+ in[(y+2)*w+x].red )/5.0;
+      out[y*w+x].green = (in[(y-2)*w+x].green+ in[(y-1)*w+x].green + in[y*w+x].green + in[(y+1)*w+x].green+ in[(y+2)*w+x].green )/5.0;
+      out[y*w+x].blue =   (in[(y-2)*w+x].blue+ in[(y-1)*w+x].blue +    in[y*w+x].blue +   in[(y+1)*w+x].blue+in[(y+2)*w+x].blue)/5.0;
+    }
+  }
+}
+
+void gaus(FRGB*out, FRGB* in1, FRGB*in2, FRGB* in3, FRGB* in4, FRGB* in5, FRGB* in6, FRGB* in7){
+  out->red = in1->red*0.00038771 + in2->red*0.01330373 + in3->red*	0.11098164+in4->red*0.22508352
+    +in5->red*0.11098164+in6->red*0.01330373+in7->red*0.00038771;
+  out->green = in1->green*0.00038771 + in2->green*0.01330373 + in3->green*	0.11098164+in4->green*0.22508352
+    +in5->green*0.11098164+in6->green*0.01330373+in7->green*0.00038771;
+  out->blue = in1->blue*0.00038771 + in2->blue*0.01330373 + in3->blue*	0.11098164+in4->blue*0.22508352
+    +in5->blue*0.11098164+in6->blue*0.01330373+in7->blue*0.00038771;
+
+}
+
+HBITMAP blur(HDC hdcOrig,HBITMAP hbmOrig){
+  BITMAPINFOHEADER bi;
+  bi.biSize = sizeof(BITMAPINFOHEADER);
+  bi.biWidth=640;
+  bi.biHeight = 480;
+  bi.biPlanes = 1;
+  bi.biBitCount=24;
+  bi.biCompression = BI_RGB;
+  bi.biSizeImage = 0;
+  bi.biXPelsPerMeter = 0;
+  bi.biYPelsPerMeter = 0;
+  bi.biClrUsed = 0;
+  bi.biClrImportant = 0;
+  //Allocate bits
+  RGBTRIPLE* bits = (RGBTRIPLE*)malloc(640*480*sizeof(RGBTRIPLE)); //happens to work out with aligned lines
+  int ret1   = GetDIBits(hdcOrig,hbmOrig,0,480,bits ,(BITMAPINFO*)&bi,DIB_RGB_COLORS);
+  FRGB* f1 = (FRGB*)malloc(640*480*sizeof(FRGB)); 
+  FRGB* f2 = (FRGB*)malloc(640*480*sizeof(FRGB)); 
+  //convert source to float
+  int i;
+  for(i=0;i<640*480;i++){
+    f1[i].blue = bits[i].rgbtBlue;
+    f1[i].green = bits[i].rgbtGreen;
+    f1[i].red = bits[i].rgbtRed;
+  }
+ // for(i=4;i<640*480-4;i++){
+//    gaus(&fDst[i],&fSrc[i-3],&fSrc[i-2],&fSrc[i-1],&fSrc[i],&fSrc[i+1],&fSrc[i+2],&fSrc[i+3]);
+  //f2[i] = f1[i];
+//} 
+  for(i=0;i<50;i++){   
+    boxH5(f2,f1,640,480);
+    boxV5(f1,f2,640,480);
+   }  
+ //now convert dest from float to int
+  for(i=0;i<640*480;i++){
+    bits[i].rgbtBlue=(U8)f2[i].blue;
+    bits[i].rgbtGreen=(U8)f2[i].green;
+    bits[i].rgbtRed=(U8)f2[i].red;
+ 
+  }
+  int ret2   =  SetDIBits(hdcOrig,hbmOrig,0,480, bits,(BITMAPINFO*)&bi,DIB_RGB_COLORS);
+ // run gaussianh
+ 
+ fprintf(stderr,"%d %d\n",ret1,ret2);
+ 
+  return hbmOrig;
+  }
+ /* 
+  HFONT hSystemVariableFont = (HFONT ) GetStockObject( ANSI_VAR_FONT );
+  LOGFONT lfSystemVariableFont;
+  GetObject ( hSystemVariableFont, sizeof(LOGFONT), &lfSystemVariableFont );
+   lfSystemVariableFont.lfHeight = 16;
+ //lfSystemVariableFont.lfWidth ;
+  NONCLIENTMETRICS nm;
+    SystemParametersInfo(SPI_GETNONCLIENTMETRICS,sizeof(nm),&nm,0);
+    nm.cbSize=sizeof(nm);
+   GLBL_FONT= CreateFontIndirect ( &nm.lfMessageFont);
+
+char buf[256];
+sprintf(buf,"font %p\n",GLBL_FONT);
+MessageBox( NULL, buf, "XXX",MB_OK|MB_ICONINFORMATION );
+*/
+
+
