@@ -154,7 +154,64 @@ CLASS::CLASS(HWND hwnd)
   pcm->addState("BX","CYINIT:BX");
   pcm->addState("CIN","CYINIT:CIN");
   add(pcm);
-}
+  //
+  // MUX
+  //
+  #define XMUX 325
+  pcm=new cCtlMultistate(hwnd,  XMUX, 75,"unused");
+  pcm->addState("  FX","GYMUX:FX");
+  pcm->addState("GXOR","CYINIT:GXOR");
+  pcm->addState("  G","CYINIT:G");
+  add(pcm);
+    //
+  pcm=new cCtlMultistate(hwnd,  XMUX, 290,"unused");
+  pcm->addState("  F5","FXMUX:F5");
+  pcm->addState("FXOR","FXMUX:FXOR");
+  pcm->addState("  F","FXMUX:F");
+  add(pcm);
+   //
+   // FF
+   //
+   #define XFF 390
+  pcm=new cCtlMultistate(hwnd,  XFF-10  , 45,"no input");
+  pcm->addState("in:Logic","DYMUX:1");
+  pcm->addState("in:BY","DYMUX:0");
+  add(pcm);
+ //
+  pcm=new cCtlMultistate(hwnd,  XFF, 75,"storage");
+  pcm->addState("Flip-flop","FFY:#FF");
+  pcm->addState("Latch","FFY:#LATCH");
+  add(pcm);
+  pcm=new cCtlMultistate(hwnd,  XFF, 105,"init");
+  pcm->addState("  0","FFY_INIT_ATTR:0");
+  pcm->addState("  1","FFY_INIT_ATTR:1");
+  add(pcm);
+  pcm=new cCtlMultistate(hwnd,  XFF, 135,"sr");
+  pcm->addState("sr high","FFY_SR_ATTR:SRHIGH");
+  pcm->addState("sr low","FFY_SR_ATTR:SRLOW");
+  add(pcm);
+//
+  add(new cCtlCheckBox(hwnd,XFF,    200,"REV","REVUSED:0"));
+  add(new cCtlCheckBox(hwnd,XFF,    220,"SR","SRFFMUX:0"));
+//
+  pcm=new cCtlMultistate(hwnd,  XFF-10  , 270,"no input");
+  pcm->addState("in:Logic","DXMUX:1");
+  pcm->addState("in:BX","DXMUX:0");
+  add(pcm);
+  pcm=new cCtlMultistate(hwnd,  XFF, 300,"storage");
+  pcm->addState("Flip-flop","FFX:#FF");
+  pcm->addState("Latch","FFX:#LATCH");
+  add(pcm);
+  pcm=new cCtlMultistate(hwnd,  XFF, 330,"init");
+  pcm->addState("  0","FFX_INIT_ATTR:0");
+  pcm->addState("  1","FFX_INIT_ATTR:1");
+  add(pcm);
+  pcm=new cCtlMultistate(hwnd,  XFF, 360,"sr");
+  pcm->addState("sr high","FFX_SR_ATTR:SRHIGH");
+  pcm->addState("sr low","FFX_SR_ATTR:SRLOW");
+  add(pcm);
+
+  }
 
 CLASS::~CLASS(){
 }
