@@ -210,7 +210,35 @@ CLASS::CLASS(HWND hwnd)
   pcm->addState("sr high","FFX_SR_ATTR:SRHIGH");
   pcm->addState("sr low","FFX_SR_ATTR:SRLOW");
   add(pcm);
-
+//
+// outputs
+//
+   #define XOUT 530
+  pcm=new cCtlMultistate(hwnd,  XOUT, 100,"YB");
+  pcm->addState("YB COUT","YBMUX:1");
+  pcm->addState("YB MC15","YBMUX:0");
+  add(pcm);
+  add(new cCtlCheckBox(hwnd, XOUT,    118,"YB used","YBUSED:0"));
+//
+  add(new cCtlCheckBox(hwnd, XOUT,    140,"BY","BYOUTUSED:0"));
+  add(new cCtlCheckBox(hwnd, XOUT,    140+1*H,"BYINV","BYINVOUTUSED:0"));
+//  
+  add(new cCtlCheckBox(hwnd, XOUT,    140+3*H,"FX","FXUSED:0"));
+//  
+  add(new cCtlCheckBox(hwnd, XOUT,    140+5*H,"Y","YUSED:0"));
+//  
+  add(new cCtlCheckBox(hwnd, XOUT,    140+7*H,"DIG","DIGUSED:0"));
+//   
+  add(new cCtlCheckBox(hwnd, XOUT,    140+9*H,"F5","F5USED:0"));
+//   
+  add(new cCtlCheckBox(hwnd, XOUT,    140+11*H,"X","XUSED:0"));
+//
+// Sync
+//
+  pcm=new cCtlMultistate(hwnd,  XOUT, 400,"unused");
+  pcm->addState("SYNC","SYNC_ATTR:SYNC");
+  pcm->addState("ASYNC","SYNC_ATTR:ASYNC");
+  add(pcm);
   }
 
 CLASS::~CLASS(){
